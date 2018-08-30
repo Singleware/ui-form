@@ -58,9 +58,12 @@ let Template = Template_1 = class Template extends Control.Component {
          */
         this.styles = (DOM.create("style", null, `:host {
   width: 100%;
+  height: 100%;
 }
 :host > .wrapper {
   display: flex;
+  height: inherit;
+  width: inherit;
 }
 :host > .wrapper[data-orientation='row'] {
   flex-direction: row;
@@ -118,20 +121,20 @@ let Template = Template_1 = class Template extends Control.Component {
      * Bind event handlers to update the custom element.
      */
     bindHandlers() {
-        this.skeleton.addEventListener('keyup', Class.bindCallback(this.changeHandler));
-        this.skeleton.addEventListener('change', Class.bindCallback(this.changeHandler), true);
-        this.skeleton.addEventListener('invalid', Class.bindCallback(this.invalidHandler), true);
+        this.skeleton.addEventListener('keyup', this.changeHandler.bind(this));
+        this.skeleton.addEventListener('change', this.changeHandler.bind(this), true);
+        this.skeleton.addEventListener('invalid', this.invalidHandler.bind(this), true);
     }
     /**
      * Bind exposed properties to the custom element.
      */
     bindProperties() {
         Object.defineProperties(this.skeleton, {
-            value: super.bindDescriptor(Template_1.prototype, 'value'),
-            required: super.bindDescriptor(Template_1.prototype, 'required'),
-            readOnly: super.bindDescriptor(Template_1.prototype, 'readOnly'),
-            disabled: super.bindDescriptor(Template_1.prototype, 'disabled'),
-            orientation: super.bindDescriptor(Template_1.prototype, 'orientation')
+            value: super.bindDescriptor(this, Template_1.prototype, 'value'),
+            required: super.bindDescriptor(this, Template_1.prototype, 'required'),
+            readOnly: super.bindDescriptor(this, Template_1.prototype, 'readOnly'),
+            disabled: super.bindDescriptor(this, Template_1.prototype, 'disabled'),
+            orientation: super.bindDescriptor(this, Template_1.prototype, 'orientation')
         });
     }
     /**
@@ -149,7 +152,7 @@ let Template = Template_1 = class Template extends Control.Component {
         const entity = {};
         Control.listChildByProperty(this.contentSlot, 'name', (field) => {
             if (field.name.length > 0 && 'value' in field) {
-                entity[field.name] = field.value;
+                entity[field.name] = field.value || entity[field.name];
             }
         });
         return entity;

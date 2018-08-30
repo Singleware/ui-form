@@ -62,9 +62,12 @@ export class Template extends Control.Component<Properties> {
     <style>
       {`:host {
   width: 100%;
+  height: 100%;
 }
 :host > .wrapper {
   display: flex;
+  height: inherit;
+  width: inherit;
 }
 :host > .wrapper[data-orientation='row'] {
   flex-direction: row;
@@ -139,9 +142,9 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private bindHandlers(): void {
-    this.skeleton.addEventListener('keyup', Class.bindCallback(this.changeHandler));
-    this.skeleton.addEventListener('change', Class.bindCallback(this.changeHandler), true);
-    this.skeleton.addEventListener('invalid', Class.bindCallback(this.invalidHandler), true);
+    this.skeleton.addEventListener('keyup', this.changeHandler.bind(this));
+    this.skeleton.addEventListener('change', this.changeHandler.bind(this), true);
+    this.skeleton.addEventListener('invalid', this.invalidHandler.bind(this), true);
   }
 
   /**
@@ -150,11 +153,11 @@ export class Template extends Control.Component<Properties> {
   @Class.Private()
   private bindProperties(): void {
     Object.defineProperties(this.skeleton, {
-      value: super.bindDescriptor(Template.prototype, 'value'),
-      required: super.bindDescriptor(Template.prototype, 'required'),
-      readOnly: super.bindDescriptor(Template.prototype, 'readOnly'),
-      disabled: super.bindDescriptor(Template.prototype, 'disabled'),
-      orientation: super.bindDescriptor(Template.prototype, 'orientation')
+      value: super.bindDescriptor(this, Template.prototype, 'value'),
+      required: super.bindDescriptor(this, Template.prototype, 'required'),
+      readOnly: super.bindDescriptor(this, Template.prototype, 'readOnly'),
+      disabled: super.bindDescriptor(this, Template.prototype, 'disabled'),
+      orientation: super.bindDescriptor(this, Template.prototype, 'orientation')
     });
   }
 
@@ -188,7 +191,7 @@ export class Template extends Control.Component<Properties> {
     const entity = {} as any;
     Control.listChildByProperty(this.contentSlot, 'name', (field: any) => {
       if (field.name.length > 0 && 'value' in field) {
-        entity[field.name] = field.value;
+        entity[field.name] = field.value || entity[field.name];
       }
     });
     return entity;
