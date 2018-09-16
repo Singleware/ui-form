@@ -8,6 +8,7 @@ import * as Control from '@singleware/ui-control';
 
 import { Properties } from './properties';
 import { Element } from './element';
+import { States } from './states';
 
 /**
  * Form template class.
@@ -19,34 +20,35 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private states = {
+    unwind: false,
     required: false,
     readOnly: false,
     disabled: false
-  };
+  } as States;
 
   /**
    * Header element.
    */
   @Class.Private()
-  private headerSlot: HTMLSlotElement = <slot name="header" class="header" /> as HTMLSlotElement;
+  private headerSlot = <slot name="header" class="header" /> as HTMLSlotElement;
 
   /**
    * Content element.
    */
   @Class.Private()
-  private contentSlot: HTMLSlotElement = <slot name="content" class="content" /> as HTMLSlotElement;
+  private contentSlot = <slot name="content" class="content" /> as HTMLSlotElement;
 
   /**
    * Footer element.
    */
   @Class.Private()
-  private footerSlot: HTMLSlotElement = <slot name="footer" class="footer" /> as HTMLSlotElement;
+  private footerSlot = <slot name="footer" class="footer" /> as HTMLSlotElement;
 
   /**
    * Wrapper element.
    */
   @Class.Private()
-  private wrapper: HTMLElement = (
+  private wrapper = (
     <div class="wrapper">
       {this.headerSlot}
       {this.contentSlot}
@@ -58,7 +60,7 @@ export class Template extends Control.Component<Properties> {
    * Form styles.
    */
   @Class.Private()
-  private styles: HTMLStyleElement = (
+  private styles = (
     <style>
       {`:host {
   width: 100%;
@@ -83,21 +85,11 @@ export class Template extends Control.Component<Properties> {
    * Form skeleton.
    */
   @Class.Private()
-  private skeleton: Element = (
+  private skeleton = (
     <form slot={this.properties.slot} class={this.properties.class} method={this.properties.method || 'POST'}>
       <div>{this.children}</div>
     </form>
   ) as Element;
-
-  /**
-   * Form elements.
-   */
-  @Class.Private()
-  private elements: ShadowRoot = DOM.append(
-    (this.skeleton.firstChild as HTMLDivElement).attachShadow({ mode: 'closed' }),
-    this.styles,
-    this.wrapper
-  ) as ShadowRoot;
 
   /**
    * Sets the specified property to all buttons in the specified element slot.
@@ -123,7 +115,6 @@ export class Template extends Control.Component<Properties> {
     const disable = !this.skeleton.reportValidity();
     if (!this.states.disabled) {
       this.setButtonsProperty(this.headerSlot, 'submit', 'disabled', disable);
-      this.setButtonsProperty(this.contentSlot, 'submit', 'disabled', disable);
       this.setButtonsProperty(this.footerSlot, 'submit', 'disabled', disable);
     }
   }
@@ -154,10 +145,14 @@ export class Template extends Control.Component<Properties> {
   private bindProperties(): void {
     Object.defineProperties(this.skeleton, {
       value: super.bindDescriptor(this, Template.prototype, 'value'),
+      unwind: super.bindDescriptor(this, Template.prototype, 'unwind'),
       required: super.bindDescriptor(this, Template.prototype, 'required'),
       readOnly: super.bindDescriptor(this, Template.prototype, 'readOnly'),
       disabled: super.bindDescriptor(this, Template.prototype, 'disabled'),
-      orientation: super.bindDescriptor(this, Template.prototype, 'orientation')
+      orientation: super.bindDescriptor(this, Template.prototype, 'orientation'),
+      checkValidity: super.bindDescriptor(this, Template.prototype, 'checkValidity'),
+      reportValidity: super.bindDescriptor(this, Template.prototype, 'reportValidity'),
+      reset: super.bindDescriptor(this, Template.prototype, 'reset')
     });
   }
 
@@ -166,7 +161,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private assignProperties(): void {
-    Control.assignProperties(this, this.properties, ['name', 'value', 'required', 'readOnly', 'disabled']);
+    Control.assignProperties(this, this.properties, ['name', 'value', 'unwind', 'required', 'readOnly', 'disabled']);
     this.orientation = this.properties.orientation || 'column';
     this.changeHandler();
   }
@@ -178,6 +173,7 @@ export class Template extends Control.Component<Properties> {
    */
   constructor(properties?: Properties, children?: any[]) {
     super(properties, children);
+    DOM.append((this.skeleton.firstChild as HTMLDivElement).attachShadow({ mode: 'closed' }), this.styles, this.wrapper);
     this.bindHandlers();
     this.bindProperties();
     this.assignProperties();
@@ -189,9 +185,19 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public get value(): any {
     const entity = {} as any;
-    Control.listChildByProperty(this.contentSlot, 'name', (field: any) => {
-      if (field.name.length > 0 && 'value' in field) {
-        entity[field.name] = field.value || entity[field.name];
+    Control.listChildByProperty(this.contentSlot, 'value', (field: any) => {
+      if ('unwind' in field && field.unwind === true) {
+        const values = field.value;
+        for (const name in values) {
+          if (values[name] !== void 0) {
+            entity[name] = values[name];
+          }
+        }
+      } else if ('name' in field && field.name) {
+        const value = field.value;
+        if (value !== void 0) {
+          entity[field.name] = value;
+        }
       }
     });
     return entity;
@@ -201,9 +207,12 @@ export class Template extends Control.Component<Properties> {
    * Set value entity.
    */
   public set value(entity: any) {
-    Control.listChildByProperty(this.contentSlot, 'name', (field: any) => {
-      if (field.name.length > 0 && 'value' in field && field.name in entity) {
-        field[field.name] = entity[field.value];
+    Control.listChildByProperty(this.contentSlot, 'value', (field: any) => {
+      if ('unwind' in field && field.unwind) {
+        field.value = entity;
+      } else if ('name' in field && field.name in entity) {
+        field.value = entity[field.name];
+        delete entity[field.name];
       }
     });
     this.changeHandler();
@@ -222,6 +231,21 @@ export class Template extends Control.Component<Properties> {
    */
   public set name(name: string) {
     this.skeleton.name = name;
+  }
+
+  /**
+   * Get unwind state.
+   */
+  @Class.Public()
+  public get unwind(): boolean {
+    return this.states.unwind;
+  }
+
+  /**
+   * Set unwind state.
+   */
+  public set unwind(state: boolean) {
+    this.states.unwind = state;
   }
 
   /**
@@ -269,7 +293,6 @@ export class Template extends Control.Component<Properties> {
   public set disabled(state: boolean) {
     this.states.disabled = state;
     Control.setChildrenProperty(this.headerSlot, 'disabled', state);
-    Control.setChildrenProperty(this.contentSlot, 'disabled', state);
     Control.setChildrenProperty(this.footerSlot, 'disabled', state);
     if (!state) {
       this.changeHandler();
@@ -297,5 +320,41 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public get element(): Element {
     return this.skeleton;
+  }
+
+  /**
+   * Checks the form validity.
+   * @returns Returns true when the form is valid, false otherwise.
+   */
+  @Class.Public()
+  public checkValidity(): boolean {
+    let validity = true;
+    Control.listChildByProperty(this.contentSlot, 'checkValidity', (field: any) => {
+      return (validity = validity && field.checkValidity()) ? void 0 : false;
+    });
+    return validity && HTMLFormElement.prototype.checkValidity.call(this.skeleton);
+  }
+
+  /**
+   * Reports the form validity.
+   * @returns Returns true when the form is valid, false otherwise.
+   */
+  @Class.Public()
+  public reportValidity(): boolean {
+    let validity = true;
+    Control.listChildByProperty(this.contentSlot, 'reportValidity', (field: any) => {
+      return (validity = validity && field.reportValidity()) ? void 0 : false;
+    });
+    return validity && HTMLFormElement.prototype.reportValidity.call(this.skeleton);
+  }
+
+  /**
+   * Reset all form fields to its initial values.
+   */
+  @Class.Public()
+  public reset(): void {
+    HTMLFormElement.prototype.reset.call(this.skeleton);
+    Control.listChildByProperty(this.contentSlot, 'reset', (field: any) => field.reset());
+    this.changeHandler();
   }
 }

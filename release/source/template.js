@@ -30,6 +30,7 @@ let Template = Template_1 = class Template extends Control.Component {
          * Form states.
          */
         this.states = {
+            unwind: false,
             required: false,
             readOnly: false,
             disabled: false
@@ -77,10 +78,7 @@ let Template = Template_1 = class Template extends Control.Component {
          */
         this.skeleton = (DOM.create("form", { slot: this.properties.slot, class: this.properties.class, method: this.properties.method || 'POST' },
             DOM.create("div", null, this.children)));
-        /**
-         * Form elements.
-         */
-        this.elements = DOM.append(this.skeleton.firstChild.attachShadow({ mode: 'closed' }), this.styles, this.wrapper);
+        DOM.append(this.skeleton.firstChild.attachShadow({ mode: 'closed' }), this.styles, this.wrapper);
         this.bindHandlers();
         this.bindProperties();
         this.assignProperties();
@@ -106,7 +104,6 @@ let Template = Template_1 = class Template extends Control.Component {
         const disable = !this.skeleton.reportValidity();
         if (!this.states.disabled) {
             this.setButtonsProperty(this.headerSlot, 'submit', 'disabled', disable);
-            this.setButtonsProperty(this.contentSlot, 'submit', 'disabled', disable);
             this.setButtonsProperty(this.footerSlot, 'submit', 'disabled', disable);
         }
     }
@@ -131,17 +128,21 @@ let Template = Template_1 = class Template extends Control.Component {
     bindProperties() {
         Object.defineProperties(this.skeleton, {
             value: super.bindDescriptor(this, Template_1.prototype, 'value'),
+            unwind: super.bindDescriptor(this, Template_1.prototype, 'unwind'),
             required: super.bindDescriptor(this, Template_1.prototype, 'required'),
             readOnly: super.bindDescriptor(this, Template_1.prototype, 'readOnly'),
             disabled: super.bindDescriptor(this, Template_1.prototype, 'disabled'),
-            orientation: super.bindDescriptor(this, Template_1.prototype, 'orientation')
+            orientation: super.bindDescriptor(this, Template_1.prototype, 'orientation'),
+            checkValidity: super.bindDescriptor(this, Template_1.prototype, 'checkValidity'),
+            reportValidity: super.bindDescriptor(this, Template_1.prototype, 'reportValidity'),
+            reset: super.bindDescriptor(this, Template_1.prototype, 'reset')
         });
     }
     /**
      * Assign all elements properties.
      */
     assignProperties() {
-        Control.assignProperties(this, this.properties, ['name', 'value', 'required', 'readOnly', 'disabled']);
+        Control.assignProperties(this, this.properties, ['name', 'value', 'unwind', 'required', 'readOnly', 'disabled']);
         this.orientation = this.properties.orientation || 'column';
         this.changeHandler();
     }
@@ -150,9 +151,20 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     get value() {
         const entity = {};
-        Control.listChildByProperty(this.contentSlot, 'name', (field) => {
-            if (field.name.length > 0 && 'value' in field) {
-                entity[field.name] = field.value || entity[field.name];
+        Control.listChildByProperty(this.contentSlot, 'value', (field) => {
+            if ('unwind' in field && field.unwind === true) {
+                const values = field.value;
+                for (const name in values) {
+                    if (values[name] !== void 0) {
+                        entity[name] = values[name];
+                    }
+                }
+            }
+            else if ('name' in field && field.name) {
+                const value = field.value;
+                if (value !== void 0) {
+                    entity[field.name] = value;
+                }
             }
         });
         return entity;
@@ -161,9 +173,13 @@ let Template = Template_1 = class Template extends Control.Component {
      * Set value entity.
      */
     set value(entity) {
-        Control.listChildByProperty(this.contentSlot, 'name', (field) => {
-            if (field.name.length > 0 && 'value' in field && field.name in entity) {
-                field[field.name] = entity[field.value];
+        Control.listChildByProperty(this.contentSlot, 'value', (field) => {
+            if ('unwind' in field && field.unwind) {
+                field.value = entity;
+            }
+            else if ('name' in field && field.name in entity) {
+                field.value = entity[field.name];
+                delete entity[field.name];
             }
         });
         this.changeHandler();
@@ -179,6 +195,18 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     set name(name) {
         this.skeleton.name = name;
+    }
+    /**
+     * Get unwind state.
+     */
+    get unwind() {
+        return this.states.unwind;
+    }
+    /**
+     * Set unwind state.
+     */
+    set unwind(state) {
+        this.states.unwind = state;
     }
     /**
      * Get required state.
@@ -217,7 +245,6 @@ let Template = Template_1 = class Template extends Control.Component {
     set disabled(state) {
         this.states.disabled = state;
         Control.setChildrenProperty(this.headerSlot, 'disabled', state);
-        Control.setChildrenProperty(this.contentSlot, 'disabled', state);
         Control.setChildrenProperty(this.footerSlot, 'disabled', state);
         if (!state) {
             this.changeHandler();
@@ -241,6 +268,36 @@ let Template = Template_1 = class Template extends Control.Component {
     get element() {
         return this.skeleton;
     }
+    /**
+     * Checks the form validity.
+     * @returns Returns true when the form is valid, false otherwise.
+     */
+    checkValidity() {
+        let validity = true;
+        Control.listChildByProperty(this.contentSlot, 'checkValidity', (field) => {
+            return (validity = validity && field.checkValidity()) ? void 0 : false;
+        });
+        return validity && HTMLFormElement.prototype.checkValidity.call(this.skeleton);
+    }
+    /**
+     * Reports the form validity.
+     * @returns Returns true when the form is valid, false otherwise.
+     */
+    reportValidity() {
+        let validity = true;
+        Control.listChildByProperty(this.contentSlot, 'reportValidity', (field) => {
+            return (validity = validity && field.reportValidity()) ? void 0 : false;
+        });
+        return validity && HTMLFormElement.prototype.reportValidity.call(this.skeleton);
+    }
+    /**
+     * Reset all form fields to its initial values.
+     */
+    reset() {
+        HTMLFormElement.prototype.reset.call(this.skeleton);
+        Control.listChildByProperty(this.contentSlot, 'reset', (field) => field.reset());
+        this.changeHandler();
+    }
 };
 __decorate([
     Class.Private()
@@ -263,9 +320,6 @@ __decorate([
 __decorate([
     Class.Private()
 ], Template.prototype, "skeleton", void 0);
-__decorate([
-    Class.Private()
-], Template.prototype, "elements", void 0);
 __decorate([
     Class.Private()
 ], Template.prototype, "setButtonsProperty", null);
@@ -292,6 +346,9 @@ __decorate([
 ], Template.prototype, "name", null);
 __decorate([
     Class.Public()
+], Template.prototype, "unwind", null);
+__decorate([
+    Class.Public()
 ], Template.prototype, "required", null);
 __decorate([
     Class.Public()
@@ -305,6 +362,15 @@ __decorate([
 __decorate([
     Class.Public()
 ], Template.prototype, "element", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "checkValidity", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "reportValidity", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "reset", null);
 Template = Template_1 = __decorate([
     Class.Describe()
 ], Template);

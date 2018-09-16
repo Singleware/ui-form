@@ -12,6 +12,10 @@ export interface Element extends HTMLFormElement {
    */
   value: any;
   /**
+   * Determines whether the form properties must be unrolled.
+   */
+  unwind: boolean;
+  /**
    * Required state.
    */
   required: boolean;
@@ -27,4 +31,18 @@ export interface Element extends HTMLFormElement {
    * Orientation mode.
    */
   orientation: string;
+  /**
+   * Checks the form validity.
+   * @returns Returns true when the form is valid, false otherwise.
+   */
+  checkValidity: () => boolean;
+  /**
+   * Reports the form validity.
+   * @returns Returns true when the form is valid, false otherwise.
+   */
+  reportValidity: () => boolean;
+  /**
+   * Reset all form fields to its initial values.
+   */
+  reset: () => void;
 }

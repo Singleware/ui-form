@@ -34,10 +34,6 @@ export declare class Template extends Control.Component<Properties> {
      */
     private skeleton;
     /**
-     * Form elements.
-     */
-    private elements;
-    /**
      * Sets the specified property to all buttons in the specified element slot.
      * @param slot Element slot.
      * @param type Button type.
@@ -87,6 +83,13 @@ export declare class Template extends Control.Component<Properties> {
     */
     name: string;
     /**
+     * Get unwind state.
+     */
+    /**
+    * Set unwind state.
+    */
+    unwind: boolean;
+    /**
      * Get required state.
      */
     /**
@@ -118,4 +121,18 @@ export declare class Template extends Control.Component<Properties> {
      * Form element.
      */
     readonly element: Element;
+    /**
+     * Checks the form validity.
+     * @returns Returns true when the form is valid, false otherwise.
+     */
+    checkValidity(): boolean;
+    /**
+     * Reports the form validity.
+     * @returns Returns true when the form is valid, false otherwise.
+     */
+    reportValidity(): boolean;
+    /**
+     * Reset all form fields to its initial values.
+     */
+    reset(): void;
 }

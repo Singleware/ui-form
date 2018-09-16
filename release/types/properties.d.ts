@@ -28,6 +28,10 @@ export interface Properties {
    */
   method?: string;
   /**
+   * Determines whether the form properties must be unrolled.
+   */
+  unwind?: boolean;
+  /**
    * Determines whether the form is required or not.
    */
   required?: boolean;
