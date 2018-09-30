@@ -54,7 +54,7 @@ export class Template extends Control.Component<Properties> {
       {this.contentSlot}
       {this.footerSlot}
     </div>
-  ) as HTMLElement;
+  ) as HTMLDivElement;
 
   /**
    * Form styles.
@@ -100,7 +100,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private setButtonsProperty(slot: HTMLSlotElement, type: string, property: PropertyKey, value: any): void {
-    Control.listChildByProperty(slot, property, (child: any) => {
+    Control.listChildrenByProperty(slot, property, (child: any) => {
       if ('type' in child && child.type === type) {
         child[property] = value;
       }
@@ -143,17 +143,17 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private bindProperties(): void {
-    Object.defineProperties(this.skeleton, {
-      value: super.bindDescriptor(this, Template.prototype, 'value'),
-      unwind: super.bindDescriptor(this, Template.prototype, 'unwind'),
-      required: super.bindDescriptor(this, Template.prototype, 'required'),
-      readOnly: super.bindDescriptor(this, Template.prototype, 'readOnly'),
-      disabled: super.bindDescriptor(this, Template.prototype, 'disabled'),
-      orientation: super.bindDescriptor(this, Template.prototype, 'orientation'),
-      checkValidity: super.bindDescriptor(this, Template.prototype, 'checkValidity'),
-      reportValidity: super.bindDescriptor(this, Template.prototype, 'reportValidity'),
-      reset: super.bindDescriptor(this, Template.prototype, 'reset')
-    });
+    this.bindComponentProperties(this.skeleton, [
+      'value',
+      'unwind',
+      'required',
+      'readOnly',
+      'disabled',
+      'orientation',
+      'checkValidity',
+      'reportValidity',
+      'reset'
+    ]);
   }
 
   /**
@@ -161,7 +161,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private assignProperties(): void {
-    Control.assignProperties(this, this.properties, ['name', 'value', 'unwind', 'required', 'readOnly', 'disabled']);
+    this.assignComponentProperties(this.properties, ['name', 'value', 'unwind', 'required', 'readOnly', 'disabled']);
     this.orientation = this.properties.orientation || 'column';
     this.changeHandler();
   }
@@ -185,7 +185,7 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public get value(): any {
     const entity = {} as any;
-    Control.listChildByProperty(this.contentSlot, 'value', (field: any) => {
+    Control.listChildrenByProperty(this.contentSlot, 'value', (field: any) => {
       if ('unwind' in field && field.unwind === true) {
         const values = field.value;
         for (const name in values) {
@@ -207,8 +207,8 @@ export class Template extends Control.Component<Properties> {
    * Set value entity.
    */
   public set value(entity: any) {
-    Control.listChildByProperty(this.contentSlot, 'value', (field: any) => {
-      if ('unwind' in field && field.unwind) {
+    Control.listChildrenByProperty(this.contentSlot, 'value', (field: any) => {
+      if ('unwind' in field && field.unwind === true) {
         field.value = entity;
       } else if ('name' in field && field.name in entity) {
         field.value = entity[field.name];
@@ -293,6 +293,7 @@ export class Template extends Control.Component<Properties> {
   public set disabled(state: boolean) {
     this.states.disabled = state;
     Control.setChildrenProperty(this.headerSlot, 'disabled', state);
+    Control.setChildrenProperty(this.contentSlot, 'disabled', state);
     Control.setChildrenProperty(this.footerSlot, 'disabled', state);
     if (!state) {
       this.changeHandler();
@@ -304,7 +305,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public get orientation(): string {
-    return this.wrapper.dataset.orientation || 'row';
+    return this.wrapper.dataset.orientation || 'column';
   }
 
   /**
@@ -329,8 +330,10 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public checkValidity(): boolean {
     let validity = true;
-    Control.listChildByProperty(this.contentSlot, 'checkValidity', (field: any) => {
-      return (validity = validity && field.checkValidity()) ? void 0 : false;
+    Control.listChildrenByProperty(this.contentSlot, 'checkValidity', (field: any) => {
+      if (!(validity = field.reportValidity())) {
+        return false;
+      }
     });
     return validity && HTMLFormElement.prototype.checkValidity.call(this.skeleton);
   }
@@ -342,8 +345,10 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public reportValidity(): boolean {
     let validity = true;
-    Control.listChildByProperty(this.contentSlot, 'reportValidity', (field: any) => {
-      return (validity = validity && field.reportValidity()) ? void 0 : false;
+    Control.listChildrenByProperty(this.contentSlot, 'reportValidity', (field: any) => {
+      if (!(validity = field.reportValidity())) {
+        return false;
+      }
     });
     return validity && HTMLFormElement.prototype.reportValidity.call(this.skeleton);
   }
@@ -354,7 +359,9 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public reset(): void {
     HTMLFormElement.prototype.reset.call(this.skeleton);
-    Control.listChildByProperty(this.contentSlot, 'reset', (field: any) => field.reset());
+    Control.listChildrenByProperty(this.contentSlot, 'reset', (field: any) => {
+      field.reset();
+    });
     this.changeHandler();
   }
 }

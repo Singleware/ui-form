@@ -6,8 +6,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var Template_1;
-"use strict";
 /**
  * Copyright (C) 2018 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
@@ -18,7 +16,7 @@ const Control = require("@singleware/ui-control");
 /**
  * Form template class.
  */
-let Template = Template_1 = class Template extends Control.Component {
+let Template = class Template extends Control.Component {
     /**
      * Default constructor.
      * @param properties Form properties.
@@ -91,7 +89,7 @@ let Template = Template_1 = class Template extends Control.Component {
      * @param value New property value.
      */
     setButtonsProperty(slot, type, property, value) {
-        Control.listChildByProperty(slot, property, (child) => {
+        Control.listChildrenByProperty(slot, property, (child) => {
             if ('type' in child && child.type === type) {
                 child[property] = value;
             }
@@ -126,23 +124,23 @@ let Template = Template_1 = class Template extends Control.Component {
      * Bind exposed properties to the custom element.
      */
     bindProperties() {
-        Object.defineProperties(this.skeleton, {
-            value: super.bindDescriptor(this, Template_1.prototype, 'value'),
-            unwind: super.bindDescriptor(this, Template_1.prototype, 'unwind'),
-            required: super.bindDescriptor(this, Template_1.prototype, 'required'),
-            readOnly: super.bindDescriptor(this, Template_1.prototype, 'readOnly'),
-            disabled: super.bindDescriptor(this, Template_1.prototype, 'disabled'),
-            orientation: super.bindDescriptor(this, Template_1.prototype, 'orientation'),
-            checkValidity: super.bindDescriptor(this, Template_1.prototype, 'checkValidity'),
-            reportValidity: super.bindDescriptor(this, Template_1.prototype, 'reportValidity'),
-            reset: super.bindDescriptor(this, Template_1.prototype, 'reset')
-        });
+        this.bindComponentProperties(this.skeleton, [
+            'value',
+            'unwind',
+            'required',
+            'readOnly',
+            'disabled',
+            'orientation',
+            'checkValidity',
+            'reportValidity',
+            'reset'
+        ]);
     }
     /**
      * Assign all elements properties.
      */
     assignProperties() {
-        Control.assignProperties(this, this.properties, ['name', 'value', 'unwind', 'required', 'readOnly', 'disabled']);
+        this.assignComponentProperties(this.properties, ['name', 'value', 'unwind', 'required', 'readOnly', 'disabled']);
         this.orientation = this.properties.orientation || 'column';
         this.changeHandler();
     }
@@ -151,7 +149,7 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     get value() {
         const entity = {};
-        Control.listChildByProperty(this.contentSlot, 'value', (field) => {
+        Control.listChildrenByProperty(this.contentSlot, 'value', (field) => {
             if ('unwind' in field && field.unwind === true) {
                 const values = field.value;
                 for (const name in values) {
@@ -173,8 +171,8 @@ let Template = Template_1 = class Template extends Control.Component {
      * Set value entity.
      */
     set value(entity) {
-        Control.listChildByProperty(this.contentSlot, 'value', (field) => {
-            if ('unwind' in field && field.unwind) {
+        Control.listChildrenByProperty(this.contentSlot, 'value', (field) => {
+            if ('unwind' in field && field.unwind === true) {
                 field.value = entity;
             }
             else if ('name' in field && field.name in entity) {
@@ -245,6 +243,7 @@ let Template = Template_1 = class Template extends Control.Component {
     set disabled(state) {
         this.states.disabled = state;
         Control.setChildrenProperty(this.headerSlot, 'disabled', state);
+        Control.setChildrenProperty(this.contentSlot, 'disabled', state);
         Control.setChildrenProperty(this.footerSlot, 'disabled', state);
         if (!state) {
             this.changeHandler();
@@ -254,7 +253,7 @@ let Template = Template_1 = class Template extends Control.Component {
      * Get orientation mode.
      */
     get orientation() {
-        return this.wrapper.dataset.orientation || 'row';
+        return this.wrapper.dataset.orientation || 'column';
     }
     /**
      * Set orientation mode.
@@ -274,8 +273,10 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     checkValidity() {
         let validity = true;
-        Control.listChildByProperty(this.contentSlot, 'checkValidity', (field) => {
-            return (validity = validity && field.checkValidity()) ? void 0 : false;
+        Control.listChildrenByProperty(this.contentSlot, 'checkValidity', (field) => {
+            if (!(validity = field.reportValidity())) {
+                return false;
+            }
         });
         return validity && HTMLFormElement.prototype.checkValidity.call(this.skeleton);
     }
@@ -285,8 +286,10 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     reportValidity() {
         let validity = true;
-        Control.listChildByProperty(this.contentSlot, 'reportValidity', (field) => {
-            return (validity = validity && field.reportValidity()) ? void 0 : false;
+        Control.listChildrenByProperty(this.contentSlot, 'reportValidity', (field) => {
+            if (!(validity = field.reportValidity())) {
+                return false;
+            }
         });
         return validity && HTMLFormElement.prototype.reportValidity.call(this.skeleton);
     }
@@ -295,7 +298,9 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     reset() {
         HTMLFormElement.prototype.reset.call(this.skeleton);
-        Control.listChildByProperty(this.contentSlot, 'reset', (field) => field.reset());
+        Control.listChildrenByProperty(this.contentSlot, 'reset', (field) => {
+            field.reset();
+        });
         this.changeHandler();
     }
 };
@@ -371,7 +376,7 @@ __decorate([
 __decorate([
     Class.Public()
 ], Template.prototype, "reset", null);
-Template = Template_1 = __decorate([
+Template = __decorate([
     Class.Describe()
 ], Template);
 exports.Template = Template;
