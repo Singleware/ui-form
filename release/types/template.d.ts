@@ -51,6 +51,11 @@ export declare class Template extends Control.Component<Properties> {
      */
     private invalidHandler;
     /**
+     * Submit event handler.
+     * @param event Event information.
+     */
+    private submitHandler;
+    /**
      * Bind event handlers to update the custom element.
      */
     private bindHandlers;
@@ -135,4 +140,13 @@ export declare class Template extends Control.Component<Properties> {
      * Reset all form fields to its initial values.
      */
     reset(): void;
+    /**
+     * Appends the specified children into this form.
+     * @param children Children instances.
+     */
+    append(...children: JSX.Element[]): void;
+    /**
+     * Remove all form children.
+     */
+    clear(): void;
 }

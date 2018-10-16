@@ -113,12 +113,22 @@ let Template = class Template extends Control.Component {
         event.preventDefault();
     }
     /**
+     * Submit event handler.
+     * @param event Event information.
+     */
+    submitHandler(event) {
+        if (!this.skeleton.hasAttribute('action')) {
+            event.preventDefault();
+        }
+    }
+    /**
      * Bind event handlers to update the custom element.
      */
     bindHandlers() {
         this.skeleton.addEventListener('keyup', this.changeHandler.bind(this));
         this.skeleton.addEventListener('change', this.changeHandler.bind(this), true);
         this.skeleton.addEventListener('invalid', this.invalidHandler.bind(this), true);
+        this.skeleton.addEventListener('submit', this.submitHandler.bind(this));
     }
     /**
      * Bind exposed properties to the custom element.
@@ -133,7 +143,9 @@ let Template = class Template extends Control.Component {
             'orientation',
             'checkValidity',
             'reportValidity',
-            'reset'
+            'reset',
+            'append',
+            'clear'
         ]);
     }
     /**
@@ -272,26 +284,16 @@ let Template = class Template extends Control.Component {
      * @returns Returns true when the form is valid, false otherwise.
      */
     checkValidity() {
-        let validity = true;
-        Control.listChildrenByProperty(this.contentSlot, 'checkValidity', (field) => {
-            if (!(validity = field.reportValidity())) {
-                return false;
-            }
-        });
-        return validity && HTMLFormElement.prototype.checkValidity.call(this.skeleton);
+        const validity = Control.listChildrenByProperty(this.contentSlot, 'checkValidity', (field) => (field.checkValidity() ? void 0 : false));
+        return validity !== false && HTMLFormElement.prototype.checkValidity.call(this.skeleton);
     }
     /**
      * Reports the form validity.
      * @returns Returns true when the form is valid, false otherwise.
      */
     reportValidity() {
-        let validity = true;
-        Control.listChildrenByProperty(this.contentSlot, 'reportValidity', (field) => {
-            if (!(validity = field.reportValidity())) {
-                return false;
-            }
-        });
-        return validity && HTMLFormElement.prototype.reportValidity.call(this.skeleton);
+        const validity = Control.listChildrenByProperty(this.contentSlot, 'reportValidity', (field) => (field.reportValidity() ? void 0 : false));
+        return validity !== false && HTMLFormElement.prototype.reportValidity.call(this.skeleton);
     }
     /**
      * Reset all form fields to its initial values.
@@ -302,6 +304,20 @@ let Template = class Template extends Control.Component {
             field.reset();
         });
         this.changeHandler();
+    }
+    /**
+     * Appends the specified children into this form.
+     * @param children Children instances.
+     */
+    append(...children) {
+        DOM.append(this.skeleton.firstChild, children);
+        this.changeHandler();
+    }
+    /**
+     * Remove all form children.
+     */
+    clear() {
+        DOM.clear(this.skeleton.firstChild);
     }
 };
 __decorate([
@@ -334,6 +350,9 @@ __decorate([
 __decorate([
     Class.Private()
 ], Template.prototype, "invalidHandler", null);
+__decorate([
+    Class.Private()
+], Template.prototype, "submitHandler", null);
 __decorate([
     Class.Private()
 ], Template.prototype, "bindHandlers", null);
@@ -376,6 +395,12 @@ __decorate([
 __decorate([
     Class.Public()
 ], Template.prototype, "reset", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "append", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "clear", null);
 Template = __decorate([
     Class.Describe()
 ], Template);

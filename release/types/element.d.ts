@@ -45,4 +45,13 @@ export interface Element extends HTMLFormElement {
    * Reset all form fields to its initial values.
    */
   reset: () => void;
+  /**
+   * Appends the specified children into this form.
+   * @param children Children instances.
+   */
+  append: (...children: JSX.Element[]) => void;
+  /**
+   * Remove all form children.
+   */
+  clear: () => void;
 }

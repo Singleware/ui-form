@@ -129,6 +129,17 @@ export class Template extends Control.Component<Properties> {
   }
 
   /**
+   * Submit event handler.
+   * @param event Event information.
+   */
+  @Class.Private()
+  private submitHandler(event: Event): void {
+    if (!this.skeleton.hasAttribute('action')) {
+      event.preventDefault();
+    }
+  }
+
+  /**
    * Bind event handlers to update the custom element.
    */
   @Class.Private()
@@ -136,6 +147,7 @@ export class Template extends Control.Component<Properties> {
     this.skeleton.addEventListener('keyup', this.changeHandler.bind(this));
     this.skeleton.addEventListener('change', this.changeHandler.bind(this), true);
     this.skeleton.addEventListener('invalid', this.invalidHandler.bind(this), true);
+    this.skeleton.addEventListener('submit', this.submitHandler.bind(this));
   }
 
   /**
@@ -152,7 +164,9 @@ export class Template extends Control.Component<Properties> {
       'orientation',
       'checkValidity',
       'reportValidity',
-      'reset'
+      'reset',
+      'append',
+      'clear'
     ]);
   }
 
@@ -329,13 +343,12 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public checkValidity(): boolean {
-    let validity = true;
-    Control.listChildrenByProperty(this.contentSlot, 'checkValidity', (field: any) => {
-      if (!(validity = field.reportValidity())) {
-        return false;
-      }
-    });
-    return validity && HTMLFormElement.prototype.checkValidity.call(this.skeleton);
+    const validity = Control.listChildrenByProperty(
+      this.contentSlot,
+      'checkValidity',
+      (field: any) => (field.checkValidity() ? void 0 : false)
+    );
+    return validity !== false && HTMLFormElement.prototype.checkValidity.call(this.skeleton);
   }
 
   /**
@@ -344,13 +357,12 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public reportValidity(): boolean {
-    let validity = true;
-    Control.listChildrenByProperty(this.contentSlot, 'reportValidity', (field: any) => {
-      if (!(validity = field.reportValidity())) {
-        return false;
-      }
-    });
-    return validity && HTMLFormElement.prototype.reportValidity.call(this.skeleton);
+    const validity = Control.listChildrenByProperty(
+      this.contentSlot,
+      'reportValidity',
+      (field: any) => (field.reportValidity() ? void 0 : false)
+    );
+    return validity !== false && HTMLFormElement.prototype.reportValidity.call(this.skeleton);
   }
 
   /**
@@ -363,5 +375,23 @@ export class Template extends Control.Component<Properties> {
       field.reset();
     });
     this.changeHandler();
+  }
+
+  /**
+   * Appends the specified children into this form.
+   * @param children Children instances.
+   */
+  @Class.Public()
+  public append(...children: JSX.Element[]): void {
+    DOM.append(this.skeleton.firstChild as HTMLElement, children);
+    this.changeHandler();
+  }
+
+  /**
+   * Remove all form children.
+   */
+  @Class.Public()
+  public clear(): void {
+    DOM.clear(this.skeleton.firstChild as HTMLElement);
   }
 }
