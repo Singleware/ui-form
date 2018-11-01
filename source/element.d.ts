@@ -16,6 +16,10 @@ export interface Element extends HTMLFormElement {
    */
   unwind: boolean;
   /**
+   * Determines whether the form is empty or not.
+   */
+  readonly empty: boolean;
+  /**
    * Required state.
    */
   required: boolean;

@@ -137,6 +137,7 @@ let Template = class Template extends Control.Component {
         this.bindComponentProperties(this.skeleton, [
             'value',
             'unwind',
+            'empty',
             'required',
             'readOnly',
             'disabled',
@@ -162,18 +163,20 @@ let Template = class Template extends Control.Component {
     get value() {
         const entity = {};
         Control.listChildrenByProperty(this.contentSlot, 'value', (field) => {
-            if ('unwind' in field && field.unwind === true) {
-                const values = field.value;
-                for (const name in values) {
-                    if (values[name] !== void 0) {
-                        entity[name] = values[name];
+            if (!('empty' in field) || !field.empty) {
+                if ('unwind' in field && field.unwind === true) {
+                    const values = field.value;
+                    for (const name in values) {
+                        if (values[name] !== void 0) {
+                            entity[name] = values[name];
+                        }
                     }
                 }
-            }
-            else if ('name' in field && field.name) {
-                const value = field.value;
-                if (value !== void 0) {
-                    entity[field.name] = value;
+                else if ('name' in field && field.name) {
+                    const value = field.value;
+                    if (value !== void 0) {
+                        entity[field.name] = value;
+                    }
                 }
             }
         });
@@ -217,6 +220,13 @@ let Template = class Template extends Control.Component {
      */
     set unwind(state) {
         this.states.unwind = state;
+    }
+    /**
+     * Get empty state.
+     */
+    get empty() {
+        const state = Control.listChildrenByProperty(this.contentSlot, 'value', (field) => ('empty' in field && !field.empty ? true : void 0));
+        return state !== true;
     }
     /**
      * Get required state.
@@ -371,6 +381,9 @@ __decorate([
 __decorate([
     Class.Public()
 ], Template.prototype, "unwind", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "empty", null);
 __decorate([
     Class.Public()
 ], Template.prototype, "required", null);

@@ -95,6 +95,10 @@ export declare class Template extends Control.Component<Properties> {
     */
     unwind: boolean;
     /**
+     * Get empty state.
+     */
+    readonly empty: boolean;
+    /**
      * Get required state.
      */
     /**

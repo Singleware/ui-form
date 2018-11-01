@@ -158,6 +158,7 @@ export class Template extends Control.Component<Properties> {
     this.bindComponentProperties(this.skeleton, [
       'value',
       'unwind',
+      'empty',
       'required',
       'readOnly',
       'disabled',
@@ -200,17 +201,19 @@ export class Template extends Control.Component<Properties> {
   public get value(): any {
     const entity = {} as any;
     Control.listChildrenByProperty(this.contentSlot, 'value', (field: any) => {
-      if ('unwind' in field && field.unwind === true) {
-        const values = field.value;
-        for (const name in values) {
-          if (values[name] !== void 0) {
-            entity[name] = values[name];
+      if (!('empty' in field) || !field.empty) {
+        if ('unwind' in field && field.unwind === true) {
+          const values = field.value;
+          for (const name in values) {
+            if (values[name] !== void 0) {
+              entity[name] = values[name];
+            }
           }
-        }
-      } else if ('name' in field && field.name) {
-        const value = field.value;
-        if (value !== void 0) {
-          entity[field.name] = value;
+        } else if ('name' in field && field.name) {
+          const value = field.value;
+          if (value !== void 0) {
+            entity[field.name] = value;
+          }
         }
       }
     });
@@ -260,6 +263,19 @@ export class Template extends Control.Component<Properties> {
    */
   public set unwind(state: boolean) {
     this.states.unwind = state;
+  }
+
+  /**
+   * Get empty state.
+   */
+  @Class.Public()
+  public get empty(): boolean {
+    const state = Control.listChildrenByProperty(
+      this.contentSlot,
+      'value',
+      (field: any) => ('empty' in field && !field.empty ? true : void 0)
+    );
+    return state !== true;
   }
 
   /**
