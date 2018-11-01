@@ -14,7 +14,7 @@ import { States } from './states';
  * Form template class.
  */
 @Class.Describe()
-export class Template extends Control.Component<Properties> {
+export class Template<T extends Properties = Properties> extends Control.Component<T> {
   /**
    * Form states.
    */
@@ -186,7 +186,7 @@ export class Template extends Control.Component<Properties> {
    * @param properties Form properties.
    * @param children Form children.
    */
-  constructor(properties?: Properties, children?: any[]) {
+  constructor(properties?: T, children?: any[]) {
     super(properties, children);
     DOM.append((this.skeleton.firstChild as HTMLDivElement).attachShadow({ mode: 'closed' }), this.styles, this.wrapper);
     this.bindHandlers();

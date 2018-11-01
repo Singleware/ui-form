@@ -4,7 +4,7 @@ import { Element } from './element';
 /**
  * Form template class.
  */
-export declare class Template extends Control.Component<Properties> {
+export declare class Template<T extends Properties = Properties> extends Control.Component<T> {
     /**
      * Form states.
      */
@@ -72,7 +72,7 @@ export declare class Template extends Control.Component<Properties> {
      * @param properties Form properties.
      * @param children Form children.
      */
-    constructor(properties?: Properties, children?: any[]);
+    constructor(properties?: T, children?: any[]);
     /**
      * Get value entity.
      */
