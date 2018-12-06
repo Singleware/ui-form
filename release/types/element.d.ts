@@ -1,61 +1,138 @@
 /**
- * Copyright (C) 2018 Silas B. Domingos
- * This source code is licensed under the MIT License as described in the file LICENSE.
+ * Form element.
  */
-
-/**
- * Form element interface.
- */
-export interface Element extends HTMLFormElement {
-  /**
-   * Form value entity.
-   */
-  value: any;
-  /**
-   * Determines whether the form properties must be unrolled.
-   */
-  unwind: boolean;
-  /**
-   * Determines whether the form is empty or not.
-   */
-  readonly empty: boolean;
-  /**
-   * Required state.
-   */
-  required: boolean;
-  /**
-   * Read-only state.
-   */
-  readOnly: boolean;
-  /**
-   * Disabled state.
-   */
-  disabled: boolean;
-  /**
-   * Orientation mode.
-   */
-  orientation: string;
-  /**
-   * Checks the form validity.
-   * @returns Returns true when the form is valid, false otherwise.
-   */
-  checkValidity: () => boolean;
-  /**
-   * Reports the form validity.
-   * @returns Returns true when the form is valid, false otherwise.
-   */
-  reportValidity: () => boolean;
-  /**
-   * Reset all form fields to its initial values.
-   */
-  reset: () => void;
-  /**
-   * Appends the specified children into this form.
-   * @param children Children instances.
-   */
-  append: (...children: JSX.Element[]) => void;
-  /**
-   * Remove all form children.
-   */
-  clear: () => void;
+export declare class Element extends HTMLElement {
+    /**
+     * Header slot element.
+     */
+    private headerSlot;
+    /**
+     * Content slot element.
+     */
+    private contentSlot;
+    /**
+     * Footer slot element.
+     */
+    private footerSlot;
+    /**
+     * Form layout element.
+     */
+    private formLayout;
+    /**
+     * Form styles element.
+     */
+    private formStyles;
+    /**
+     * Add all values from the specified child into the given entity.
+     * @param entity Target entity.
+     * @param child Child element.
+     */
+    private addValues;
+    /**
+     * Add the value from the specified child into the given entity.
+     * @param entity Target entity.
+     * @param child Child element.
+     */
+    private addValue;
+    /**
+     * Updates the specified state in the element.
+     * @param name State name.
+     * @param state State value.
+     */
+    private updateState;
+    /**
+     * Update all element's children by the the specified state.
+     * @param name State name.
+     * @param state State value.
+     */
+    private updateChildrenState;
+    /**
+     * Change event handler.
+     */
+    private changeHandler;
+    /**
+     * Click event handler.
+     * @param event Event information.
+     */
+    private clickHandler;
+    /**
+     * Keypress event handler.
+     * @param event Event information.
+     */
+    private keypressHandler;
+    /**
+     * Default constructor.
+     */
+    constructor();
+    /**
+     * Determines whether the element is empty or not.
+     */
+    readonly empty: boolean;
+    /**
+     * Gets the element name.
+     */
+    /**
+    * Sets the element name.
+    */
+    name: string;
+    /**
+     * Gets the element value.
+     */
+    /**
+    * Sets the element value.
+    */
+    value: any;
+    /**
+     * Gets the unwind state of the element.
+     */
+    /**
+    * Sets the unwind state of the element.
+    */
+    unwind: boolean;
+    /**
+     * Gets the required state of the element.
+     */
+    /**
+    * Sets the required state of the element.
+    */
+    required: boolean;
+    /**
+     * Gets the read-only state of the element.
+     */
+    /**
+    * Sets the read-only state of the element.
+    */
+    readOnly: boolean;
+    /**
+     * Gets the disabled state of the element.
+     */
+    /**
+    * Sets the disabled state of the element.
+    */
+    disabled: boolean;
+    /**
+     * Gets the element orientation.
+     */
+    /**
+    * Sets the element orientation.
+    */
+    orientation: string;
+    /**
+     * Move the focus to the first child that can be focused.
+     */
+    focus(): void;
+    /**
+     * Submits the form element.
+     * @returns Returns true when the form has been submitted, false otherwise.
+     */
+    submit(): boolean;
+    /**
+     * Reset all fields in the element to its initial values.
+     */
+    reset(): void;
+    /**
+     * Checks the element validity.
+     * @returns Returns true when the element is valid, false otherwise.
+     */
+    checkValidity(): boolean;
 }

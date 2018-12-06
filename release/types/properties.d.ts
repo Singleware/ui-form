@@ -24,10 +24,6 @@ export interface Properties {
    */
   value?: any;
   /**
-   * Form method.
-   */
-  method?: string;
-  /**
    * Determines whether the form properties must be unrolled.
    */
   unwind?: boolean;
@@ -51,4 +47,16 @@ export interface Properties {
    * Form children.
    */
   children?: {};
+  /**
+   * Invalid event.
+   */
+  onInvalid?: (event: Event) => void;
+  /**
+   * Submit event.
+   */
+  onSubmit?: (event: Event) => void;
+  /**
+   * Reset event.
+   */
+  onReset?: (event: Event) => void;
 }

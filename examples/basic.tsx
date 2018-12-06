@@ -5,10 +5,10 @@
  * The proposal of this example is to show how to use the basic form template.
  */
 import * as Form from '../source';
-import * as DOM from '@singleware/jsx';
+import * as JSX from '@singleware/jsx';
 
 const form = (
-  <Form.Template>
+  <Form.Component>
     <h3 slot="header">Form title</h3>
     <input slot="content" type="text" name="input" />
     <select slot="content" name="select">
@@ -18,7 +18,7 @@ const form = (
     <button slot="footer" type="submit">
       Submit
     </button>
-  </Form.Template>
+  </Form.Component>
 ) as Form.Element;
 
 // Change disabled property of all fiends in the form.
