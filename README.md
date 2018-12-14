@@ -4,10 +4,10 @@ Custom HTML element used to mirror field properties in its first-level children,
 
 ### State Attributes
 
-| Name    | Description                                                          |
-| ------- | -------------------------------------------------------------------- |
-| empty   | Automatic assigned when all first-level children are empty           |
-| invalid | Automatic assigned when one or more first-level children are invalid |
+| Name    | Description                                                              |
+| ------- | ------------------------------------------------------------------------ |
+| empty   | Automatically assigned when all first-level children are empty           |
+| invalid | Automatically assigned when one or more first-level children are invalid |
 
 ### Mirrored Properties
 
@@ -35,6 +35,14 @@ Custom HTML element used to mirror field properties in its first-level children,
 | submit        | Notify the form submission (Dispatches submit or invalid event)                   |
 | reset         | Reset all first-level children to its initial values (Dispatches the reset event) |
 | checkValidity | Check whether all first-level children are valid or not                           |
+
+### Slots
+
+| Name    | Description                                                        |
+| ------- | ------------------------------------------------------------------ |
+| header  | Element to contain any header child, always on top of the form     |
+| content | Element to contain any content child, always on middle of the form |
+| footer  | Element to contain any footer child, always on bottom of the form  |
 
 ### Events
 
