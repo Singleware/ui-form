@@ -41,11 +41,15 @@ export declare class Element extends HTMLElement {
      */
     private updateState;
     /**
-     * Update all element's children by the the specified state.
+     * Update all element's children by the specified state.
      * @param name State name.
      * @param state State value.
      */
     private updateChildrenState;
+    /**
+     * Activate or deactivate all first-level children with submit type.
+     */
+    private updateSubmitState;
     /**
      * Change event handler.
      */

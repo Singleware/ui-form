@@ -47,7 +47,10 @@ export class Element extends HTMLElement {
   @Class.Private()
   private formStyles = (
     <style>
-      {`:host > .form {
+      {`:host {
+  display: block;
+}
+:host > .form {
   display: flex;
   height: inherit;
   width: inherit;
@@ -110,7 +113,7 @@ export class Element extends HTMLElement {
   }
 
   /**
-   * Update all element's children by the the specified state.
+   * Update all element's children by the specified state.
    * @param name State name.
    * @param state State value.
    */
@@ -124,18 +127,26 @@ export class Element extends HTMLElement {
   }
 
   /**
-   * Change event handler.
+   * Activate or deactivate all first-level children with submit type.
    */
   @Class.Private()
-  private changeHandler(): void {
-    this.updateState('empty', this.empty);
-    this.updateState('invalid', !this.empty && !this.checkValidity());
+  private updateSubmitState(): void {
     const disable = this.disabled || !this.checkValidity();
     for (const child of this.children as any) {
       if (child.type === 'submit') {
         child.disabled = disable;
       }
     }
+  }
+
+  /**
+   * Change event handler.
+   */
+  @Class.Private()
+  private changeHandler(): void {
+    this.updateSubmitState();
+    this.updateState('empty', this.empty);
+    this.updateState('invalid', !this.empty && !this.checkValidity());
   }
 
   /**
@@ -171,14 +182,11 @@ export class Element extends HTMLElement {
   constructor() {
     super();
     const shadow = JSX.append(this.attachShadow({ mode: 'closed' }), this.formStyles, this.formLayout) as ShadowRoot;
-    const options = { capture: true, passive: true };
-    shadow.addEventListener('slotchange', this.changeHandler.bind(this), options);
-    shadow.addEventListener('focus', this.changeHandler.bind(this), options);
-    shadow.addEventListener('keyup', this.changeHandler.bind(this), options);
-    shadow.addEventListener('change', this.changeHandler.bind(this), options);
-    shadow.addEventListener('blur', this.changeHandler.bind(this), options);
-    shadow.addEventListener('click', this.clickHandler.bind(this), options);
-    shadow.addEventListener('keypress', this.keypressHandler.bind(this), options);
+    shadow.addEventListener('slotchange', this.changeHandler.bind(this));
+    shadow.addEventListener('keyup', this.changeHandler.bind(this));
+    shadow.addEventListener('change', this.changeHandler.bind(this));
+    shadow.addEventListener('click', this.clickHandler.bind(this) as EventListener);
+    shadow.addEventListener('keypress', this.keypressHandler.bind(this) as EventListener);
   }
 
   /**
@@ -216,12 +224,13 @@ export class Element extends HTMLElement {
   public get value(): any {
     const entity = {} as any;
     for (const child of this.children as any) {
-      if (!child.empty) {
-        if (child.unwind) {
-          this.addValues(entity, child);
-        } else {
-          this.addValue(entity, child);
-        }
+      if (child.empty) {
+        continue;
+      }
+      if (child.unwind) {
+        this.addValues(entity, child);
+      } else {
+        this.addValue(entity, child);
       }
     }
     return entity;
@@ -368,6 +377,7 @@ export class Element extends HTMLElement {
           }
         }
       }
+      this.changeHandler();
     }
   }
 

@@ -48,6 +48,10 @@ export interface Properties {
    */
   children?: {};
   /**
+   * Change event.
+   */
+  onChange?: (event: Event) => void;
+  /**
    * Invalid event.
    */
   onInvalid?: (event: Event) => void;

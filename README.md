@@ -46,11 +46,12 @@ Custom HTML element used to mirror field properties in its first-level children,
 
 ### Events
 
-| Name      | Description                                      |
-| --------- | ------------------------------------------------ |
-| onInvalid | Dispatched when the submitted form is invalid    |
-| onReset   | Dispatched when the form was reset               |
-| onSubmit  | Dispatched when the form is submitted successful |
+| Name    | Description                                       |
+| ------- | ------------------------------------------------- |
+| change  | Dispatched when some field in the form is changed |
+| invalid | Dispatched when the submitted form is invalid     |
+| reset   | Dispatched when the form was reset                |
+| submit  | Dispatched when the form is submitted successful  |
 
 ## Install
 

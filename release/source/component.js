@@ -25,7 +25,7 @@ let Component = class Component extends Control.Component {
         /**
          * Element instance.
          */
-        this.skeleton = JSX.create("swe-form", Object.assign({}, this.properties), this.children);
+        this.skeleton = (JSX.create("swe-form", { class: this.properties.class, slot: this.properties.slot, name: this.properties.name, value: this.properties.value, unwind: this.properties.unwind, required: this.properties.required, readOnly: this.properties.readOnly, disabled: this.properties.disabled, orientation: this.properties.orientation, onChange: this.properties.onChange, onInvalid: this.properties.onInvalid, onReset: this.properties.onReset, onSubmit: this.properties.onSubmit }, this.children));
     }
     /**
      * Gets the element.
