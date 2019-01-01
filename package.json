@@ -7,15 +7,15 @@
   "name": "@singleware/ui-form",
   "description": "Singleware UI form package.",
   "license": "MIT",
-  "version": "1.1.17",
+  "version": "1.1.23",
   "main": "release/source/index.js",
   "types": "release/types/index.d.ts",
   "keywords": [
     "form",
     "ui form",
     "user interface",
-    "shadow dom",
     "custom element",
+    "shadow dom",
     "browser"
   ],
   "repository": {
@@ -23,9 +23,10 @@
     "url": "https://github.com/singleware/ui-form"
   },
   "dependencies": {
-    "@singleware/class": "^1.1.14",
-    "@singleware/jsx": "^1.0.18",
-    "@singleware/ui-control": "^1.1.4"
+    "@singleware/class": "^1.1.19",
+    "@singleware/jsx": "^1.0.20",
+    "@singleware/oss": "^1.0.2",
+    "@singleware/ui-control": "^1.1.10"
   },
   "devDependencies": {
     "prettier": "^1.15.3",

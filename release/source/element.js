@@ -11,16 +11,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 const Class = require("@singleware/class");
+const Control = require("@singleware/ui-control");
 const JSX = require("@singleware/jsx");
+const stylesheet_1 = require("./stylesheet");
 /**
  * Form element.
  */
-let Element = class Element extends HTMLElement {
+let Element = class Element extends Control.Element {
     /**
      * Default constructor.
      */
     constructor() {
         super();
+        /**
+         * Element styles.
+         */
+        this.styles = new stylesheet_1.Stylesheet();
         /**
          * Header slot element.
          */
@@ -43,22 +49,7 @@ let Element = class Element extends HTMLElement {
         /**
          * Form styles element.
          */
-        this.formStyles = (JSX.create("style", null, `:host {
-  display: block;
-}
-:host > .form {
-  display: flex;
-  height: inherit;
-  width: inherit;
-}
-:host([orientation='row']) > .form {
-  flex-direction: row;
-  align-items: center;
-}
-:host > .form,
-:host([orientation='column']) > .form {
-  flex-direction: column;
-}`));
+        this.formStyles = JSX.create("style", { type: "text/css" }, this.styles.toString());
         const shadow = JSX.append(this.attachShadow({ mode: 'closed' }), this.formStyles, this.formLayout);
         shadow.addEventListener('slotchange', this.changeHandler.bind(this));
         shadow.addEventListener('keyup', this.changeHandler.bind(this));
@@ -95,61 +86,63 @@ let Element = class Element extends HTMLElement {
         }
     }
     /**
-     * Updates the specified state in the element.
-     * @param name State name.
-     * @param state State value.
+     * Enable or disable all first-level children with submit type.
      */
-    updateState(name, state) {
-        if (state) {
-            this.setAttribute(name, '');
-        }
-        else {
-            this.removeAttribute(name);
-        }
-    }
-    /**
-     * Update all element's children by the specified state.
-     * @param name State name.
-     * @param state State value.
-     */
-    updateChildrenState(name, state) {
+    updateSubmitButtonState() {
+        const isDisabled = this.disabled || !this.checkValidity();
         for (const child of this.children) {
-            if (name in child) {
-                child[name] = state;
+            switch (child.type) {
+                case 'submit':
+                    child.disabled = isDisabled;
+                    break;
             }
         }
     }
     /**
-     * Activate or deactivate all first-level children with submit type.
+     * Notifies the form submission.
      */
-    updateSubmitState() {
-        const disable = this.disabled || !this.checkValidity();
-        for (const child of this.children) {
-            if (child.type === 'submit') {
-                child.disabled = disable;
-            }
+    submitAndNotify() {
+        const saved = this.readOnly;
+        const event = new Event('submit', { bubbles: true, cancelable: true });
+        this.readOnly = true;
+        this.dispatchEvent(event);
+        this.readOnly = saved;
+    }
+    /**
+     * Notifies the form reset.
+     */
+    resetAndNotify() {
+        const event = new Event('reset', { bubbles: true, cancelable: true });
+        if (this.dispatchEvent(event)) {
+            this.reset();
         }
     }
     /**
      * Change event handler.
      */
     changeHandler() {
-        this.updateSubmitState();
-        this.updateState('empty', this.empty);
-        this.updateState('invalid', !this.empty && !this.checkValidity());
+        this.updatePropertyState('empty', this.empty);
+        this.updatePropertyState('invalid', !this.empty && !this.checkValidity());
+        this.updateSubmitButtonState();
     }
     /**
      * Click event handler.
      * @param event Event information.
      */
     clickHandler(event) {
-        switch (event.target.type) {
-            case 'submit':
-                this.submit();
-                break;
-            case 'reset':
-                this.reset();
-                break;
+        const isTarget = event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement;
+        const isUsable = !this.disabled && !this.readOnly && this.checkValidity();
+        if (isTarget && isUsable) {
+            switch (event.target.type) {
+                case 'submit':
+                    event.preventDefault();
+                    this.submitAndNotify();
+                    break;
+                case 'reset':
+                    event.preventDefault();
+                    this.resetAndNotify();
+                    break;
+            }
         }
     }
     /**
@@ -157,8 +150,15 @@ let Element = class Element extends HTMLElement {
      * @param event Event information.
      */
     keypressHandler(event) {
-        if (event.target instanceof HTMLInputElement && event.code === 'Enter') {
-            this.submit();
+        const isTarget = event.target instanceof HTMLInputElement;
+        const isUsable = !this.disabled && !this.readOnly && this.checkValidity();
+        if (isTarget && isUsable) {
+            switch (event.code) {
+                case 'Enter':
+                    event.preventDefault();
+                    this.submitAndNotify();
+                    break;
+            }
         }
     }
     /**
@@ -190,14 +190,13 @@ let Element = class Element extends HTMLElement {
     get value() {
         const entity = {};
         for (const child of this.children) {
-            if (child.empty) {
-                continue;
-            }
-            if (child.unwind) {
-                this.addValues(entity, child);
-            }
-            else {
-                this.addValue(entity, child);
+            if (!child.empty) {
+                if (child.unwind) {
+                    this.addValues(entity, child);
+                }
+                else {
+                    this.addValue(entity, child);
+                }
             }
         }
         return entity;
@@ -226,7 +225,7 @@ let Element = class Element extends HTMLElement {
      * Sets the unwind state of the element.
      */
     set unwind(state) {
-        this.updateState('unwind', state);
+        this.updatePropertyState('unwind', state);
     }
     /**
      * Gets the required state of the element.
@@ -238,7 +237,7 @@ let Element = class Element extends HTMLElement {
      * Sets the required state of the element.
      */
     set required(state) {
-        this.updateState('required', state);
+        this.updatePropertyState('required', state);
         this.updateChildrenState('required', state);
         this.changeHandler();
     }
@@ -252,8 +251,9 @@ let Element = class Element extends HTMLElement {
      * Sets the read-only state of the element.
      */
     set readOnly(state) {
-        this.updateState('readonly', state);
+        this.updatePropertyState('readonly', state);
         this.updateChildrenState('readOnly', state);
+        this.changeHandler();
     }
     /**
      * Gets the disabled state of the element.
@@ -265,7 +265,7 @@ let Element = class Element extends HTMLElement {
      * Sets the disabled state of the element.
      */
     set disabled(state) {
-        this.updateState('disabled', state);
+        this.updatePropertyState('disabled', state);
         this.updateChildrenState('disabled', state);
         this.changeHandler();
     }
@@ -293,40 +293,23 @@ let Element = class Element extends HTMLElement {
         }
     }
     /**
-     * Submits the form element.
-     * @returns Returns true when the form has been submitted, false otherwise.
-     */
-    submit() {
-        if (!this.disabled) {
-            if (!this.checkValidity()) {
-                this.dispatchEvent(new Event('invalid', { bubbles: true, cancelable: true }));
-            }
-            else {
-                return this.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }
-        }
-        return false;
-    }
-    /**
      * Reset all fields in the element to its initial values.
      */
     reset() {
-        if (this.dispatchEvent(new Event('reset', { bubbles: true, cancelable: true }))) {
-            for (const child of this.children) {
-                if (child.reset instanceof Function) {
-                    child.reset();
+        for (const child of this.children) {
+            if (child.reset instanceof Function) {
+                child.reset();
+            }
+            else {
+                if ('value' in child) {
+                    child.value = child.defaultValue;
                 }
-                else {
-                    if ('value' in child) {
-                        child.value = child.defaultValue;
-                    }
-                    if ('checked' in child) {
-                        child.checked = child.defaultChecked;
-                    }
+                if ('checked' in child) {
+                    child.checked = child.defaultChecked;
                 }
             }
-            this.changeHandler();
         }
+        this.changeHandler();
     }
     /**
      * Checks the element validity.
@@ -341,6 +324,9 @@ let Element = class Element extends HTMLElement {
         return true;
     }
 };
+__decorate([
+    Class.Private()
+], Element.prototype, "styles", void 0);
 __decorate([
     Class.Private()
 ], Element.prototype, "headerSlot", void 0);
@@ -364,13 +350,13 @@ __decorate([
 ], Element.prototype, "addValue", null);
 __decorate([
     Class.Private()
-], Element.prototype, "updateState", null);
+], Element.prototype, "updateSubmitButtonState", null);
 __decorate([
     Class.Private()
-], Element.prototype, "updateChildrenState", null);
+], Element.prototype, "submitAndNotify", null);
 __decorate([
     Class.Private()
-], Element.prototype, "updateSubmitState", null);
+], Element.prototype, "resetAndNotify", null);
 __decorate([
     Class.Private()
 ], Element.prototype, "changeHandler", null);
@@ -407,9 +393,6 @@ __decorate([
 __decorate([
     Class.Public()
 ], Element.prototype, "focus", null);
-__decorate([
-    Class.Public()
-], Element.prototype, "submit", null);
 __decorate([
     Class.Public()
 ], Element.prototype, "reset", null);

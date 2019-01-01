@@ -1,7 +1,12 @@
+import * as Control from '@singleware/ui-control';
 /**
  * Form element.
  */
-export declare class Element extends HTMLElement {
+export declare class Element extends Control.Element {
+    /**
+     * Element styles.
+     */
+    private styles;
     /**
      * Header slot element.
      */
@@ -35,21 +40,17 @@ export declare class Element extends HTMLElement {
      */
     private addValue;
     /**
-     * Updates the specified state in the element.
-     * @param name State name.
-     * @param state State value.
+     * Enable or disable all first-level children with submit type.
      */
-    private updateState;
+    private updateSubmitButtonState;
     /**
-     * Update all element's children by the specified state.
-     * @param name State name.
-     * @param state State value.
+     * Notifies the form submission.
      */
-    private updateChildrenState;
+    private submitAndNotify;
     /**
-     * Activate or deactivate all first-level children with submit type.
+     * Notifies the form reset.
      */
-    private updateSubmitState;
+    private resetAndNotify;
     /**
      * Change event handler.
      */
@@ -125,11 +126,6 @@ export declare class Element extends HTMLElement {
      * Move the focus to the first child that can be focused.
      */
     focus(): void;
-    /**
-     * Submits the form element.
-     * @returns Returns true when the form has been submitted, false otherwise.
-     */
-    submit(): boolean;
     /**
      * Reset all fields in the element to its initial values.
      */

@@ -52,10 +52,6 @@ export interface Properties {
    */
   onChange?: (event: Event) => void;
   /**
-   * Invalid event.
-   */
-  onInvalid?: (event: Event) => void;
-  /**
    * Submit event.
    */
   onSubmit?: (event: Event) => void;

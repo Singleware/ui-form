@@ -3,14 +3,23 @@
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 import * as Class from '@singleware/class';
+import * as Control from '@singleware/ui-control';
 import * as JSX from '@singleware/jsx';
+
+import { Stylesheet } from './stylesheet';
 
 /**
  * Form element.
  */
 @JSX.Describe('swe-form')
 @Class.Describe()
-export class Element extends HTMLElement {
+export class Element extends Control.Element {
+  /**
+   * Element styles.
+   */
+  @Class.Private()
+  private styles = new Stylesheet();
+
   /**
    * Header slot element.
    */
@@ -45,26 +54,7 @@ export class Element extends HTMLElement {
    * Form styles element.
    */
   @Class.Private()
-  private formStyles = (
-    <style>
-      {`:host {
-  display: block;
-}
-:host > .form {
-  display: flex;
-  height: inherit;
-  width: inherit;
-}
-:host([orientation='row']) > .form {
-  flex-direction: row;
-  align-items: center;
-}
-:host > .form,
-:host([orientation='column']) > .form {
-  flex-direction: column;
-}`}
-    </style>
-  ) as HTMLStyleElement;
+  private formStyles = <style type="text/css">{this.styles.toString()}</style> as HTMLStyleElement;
 
   /**
    * Add all values from the specified child into the given entity.
@@ -99,43 +89,40 @@ export class Element extends HTMLElement {
   }
 
   /**
-   * Updates the specified state in the element.
-   * @param name State name.
-   * @param state State value.
+   * Enable or disable all first-level children with submit type.
    */
   @Class.Private()
-  private updateState(name: string, state: boolean): void {
-    if (state) {
-      this.setAttribute(name, '');
-    } else {
-      this.removeAttribute(name);
-    }
-  }
-
-  /**
-   * Update all element's children by the specified state.
-   * @param name State name.
-   * @param state State value.
-   */
-  @Class.Private()
-  private updateChildrenState(name: string, state: boolean): void {
+  private updateSubmitButtonState(): void {
+    const isDisabled = this.disabled || !this.checkValidity();
     for (const child of this.children as any) {
-      if (name in child) {
-        child[name] = state;
+      switch (child.type) {
+        case 'submit':
+          child.disabled = isDisabled;
+          break;
       }
     }
   }
 
   /**
-   * Activate or deactivate all first-level children with submit type.
+   * Notifies the form submission.
    */
   @Class.Private()
-  private updateSubmitState(): void {
-    const disable = this.disabled || !this.checkValidity();
-    for (const child of this.children as any) {
-      if (child.type === 'submit') {
-        child.disabled = disable;
-      }
+  private submitAndNotify(): void {
+    const saved = this.readOnly;
+    const event = new Event('submit', { bubbles: true, cancelable: true });
+    this.readOnly = true;
+    this.dispatchEvent(event);
+    this.readOnly = saved;
+  }
+
+  /**
+   * Notifies the form reset.
+   */
+  @Class.Private()
+  private resetAndNotify(): void {
+    const event = new Event('reset', { bubbles: true, cancelable: true });
+    if (this.dispatchEvent(event)) {
+      this.reset();
     }
   }
 
@@ -144,9 +131,9 @@ export class Element extends HTMLElement {
    */
   @Class.Private()
   private changeHandler(): void {
-    this.updateSubmitState();
-    this.updateState('empty', this.empty);
-    this.updateState('invalid', !this.empty && !this.checkValidity());
+    this.updatePropertyState('empty', this.empty);
+    this.updatePropertyState('invalid', !this.empty && !this.checkValidity());
+    this.updateSubmitButtonState();
   }
 
   /**
@@ -155,13 +142,19 @@ export class Element extends HTMLElement {
    */
   @Class.Private()
   private clickHandler(event: MouseEvent): void {
-    switch ((event.target as any).type) {
-      case 'submit':
-        this.submit();
-        break;
-      case 'reset':
-        this.reset();
-        break;
+    const isTarget = event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement;
+    const isUsable = !this.disabled && !this.readOnly && this.checkValidity();
+    if (isTarget && isUsable) {
+      switch ((event.target as any).type) {
+        case 'submit':
+          event.preventDefault();
+          this.submitAndNotify();
+          break;
+        case 'reset':
+          event.preventDefault();
+          this.resetAndNotify();
+          break;
+      }
     }
   }
 
@@ -171,8 +164,15 @@ export class Element extends HTMLElement {
    */
   @Class.Private()
   private keypressHandler(event: KeyboardEvent): void {
-    if (event.target instanceof HTMLInputElement && event.code === 'Enter') {
-      this.submit();
+    const isTarget = event.target instanceof HTMLInputElement;
+    const isUsable = !this.disabled && !this.readOnly && this.checkValidity();
+    if (isTarget && isUsable) {
+      switch (event.code) {
+        case 'Enter':
+          event.preventDefault();
+          this.submitAndNotify();
+          break;
+      }
     }
   }
 
@@ -224,13 +224,12 @@ export class Element extends HTMLElement {
   public get value(): any {
     const entity = {} as any;
     for (const child of this.children as any) {
-      if (child.empty) {
-        continue;
-      }
-      if (child.unwind) {
-        this.addValues(entity, child);
-      } else {
-        this.addValue(entity, child);
+      if (!child.empty) {
+        if (child.unwind) {
+          this.addValues(entity, child);
+        } else {
+          this.addValue(entity, child);
+        }
       }
     }
     return entity;
@@ -262,7 +261,7 @@ export class Element extends HTMLElement {
    * Sets the unwind state of the element.
    */
   public set unwind(state: boolean) {
-    this.updateState('unwind', state);
+    this.updatePropertyState('unwind', state);
   }
 
   /**
@@ -277,7 +276,7 @@ export class Element extends HTMLElement {
    * Sets the required state of the element.
    */
   public set required(state: boolean) {
-    this.updateState('required', state);
+    this.updatePropertyState('required', state);
     this.updateChildrenState('required', state);
     this.changeHandler();
   }
@@ -294,8 +293,9 @@ export class Element extends HTMLElement {
    * Sets the read-only state of the element.
    */
   public set readOnly(state: boolean) {
-    this.updateState('readonly', state);
+    this.updatePropertyState('readonly', state);
     this.updateChildrenState('readOnly', state);
+    this.changeHandler();
   }
 
   /**
@@ -310,7 +310,7 @@ export class Element extends HTMLElement {
    * Sets the disabled state of the element.
    */
   public set disabled(state: boolean) {
-    this.updateState('disabled', state);
+    this.updatePropertyState('disabled', state);
     this.updateChildrenState('disabled', state);
     this.changeHandler();
   }
@@ -344,41 +344,23 @@ export class Element extends HTMLElement {
   }
 
   /**
-   * Submits the form element.
-   * @returns Returns true when the form has been submitted, false otherwise.
-   */
-  @Class.Public()
-  public submit(): boolean {
-    if (!this.disabled) {
-      if (!this.checkValidity()) {
-        this.dispatchEvent(new Event('invalid', { bubbles: true, cancelable: true }));
-      } else {
-        return this.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-      }
-    }
-    return false;
-  }
-
-  /**
    * Reset all fields in the element to its initial values.
    */
   @Class.Public()
   public reset(): void {
-    if (this.dispatchEvent(new Event('reset', { bubbles: true, cancelable: true }))) {
-      for (const child of this.children as any) {
-        if (child.reset instanceof Function) {
-          child.reset();
-        } else {
-          if ('value' in child) {
-            child.value = child.defaultValue;
-          }
-          if ('checked' in child) {
-            child.checked = child.defaultChecked;
-          }
+    for (const child of this.children as any) {
+      if (child.reset instanceof Function) {
+        child.reset();
+      } else {
+        if ('value' in child) {
+          child.value = child.defaultValue;
+        }
+        if ('checked' in child) {
+          child.checked = child.defaultChecked;
         }
       }
-      this.changeHandler();
     }
+    this.changeHandler();
   }
 
   /**

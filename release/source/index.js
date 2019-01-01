@@ -9,3 +9,5 @@ var component_1 = require("./component");
 exports.Component = component_1.Component;
 var element_1 = require("./element");
 exports.Element = element_1.Element;
+var stylesheet_1 = require("./stylesheet");
+exports.Stylesheet = stylesheet_1.Stylesheet;

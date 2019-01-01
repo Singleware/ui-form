@@ -30,7 +30,6 @@ export class Component<T extends Properties = Properties> extends Control.Compon
       disabled={this.properties.disabled}
       orientation={this.properties.orientation}
       onChange={this.properties.onChange}
-      onInvalid={this.properties.onInvalid}
       onReset={this.properties.onReset}
       onSubmit={this.properties.onSubmit}
     >
