@@ -24,19 +24,19 @@ export class Element extends Control.Element {
    * Header slot element.
    */
   @Class.Private()
-  private headerSlot = <slot name="header" class="header" /> as HTMLSlotElement;
+  private headerSlot = (<slot name="header" class="header" />) as HTMLSlotElement;
 
   /**
    * Content slot element.
    */
   @Class.Private()
-  private contentSlot = <slot name="content" class="content" /> as HTMLSlotElement;
+  private contentSlot = (<slot name="content" class="content" />) as HTMLSlotElement;
 
   /**
    * Footer slot element.
    */
   @Class.Private()
-  private footerSlot = <slot name="footer" class="footer" /> as HTMLSlotElement;
+  private footerSlot = (<slot name="footer" class="footer" />) as HTMLSlotElement;
 
   /**
    * Form layout element.
@@ -54,7 +54,7 @@ export class Element extends Control.Element {
    * Form styles element.
    */
   @Class.Private()
-  private formStyles = <style type="text/css">{this.styles.toString()}</style> as HTMLStyleElement;
+  private formStyles = (<style type="text/css">{this.styles.toString()}</style>) as HTMLStyleElement;
 
   /**
    * Add all values from the specified child into the given entity.
@@ -336,7 +336,7 @@ export class Element extends Control.Element {
   @Class.Public()
   public focus(): void {
     for (const child of this.children as any) {
-      if (child.focus instanceof Function && !child.disabled && !child.readOnly) {
+      if (child.tabIndex >= 0 && !child.disabled && !child.readOnly) {
         child.focus();
         break;
       }

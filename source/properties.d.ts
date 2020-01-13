@@ -40,6 +40,10 @@ export interface Properties {
    */
   disabled?: boolean;
   /**
+   * Form tab index.
+   */
+  tabIndex?: number;
+  /**
    * Form orientation.
    */
   orientation?: string;

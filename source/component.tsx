@@ -28,6 +28,7 @@ export class Component<T extends Properties = Properties> extends Control.Compon
       required={this.properties.required}
       readOnly={this.properties.readOnly}
       disabled={this.properties.disabled}
+      tabIndex={this.properties.tabIndex || 0}
       orientation={this.properties.orientation}
       onChange={this.properties.onChange}
       onReset={this.properties.onReset}

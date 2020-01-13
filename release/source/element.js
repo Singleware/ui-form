@@ -30,15 +30,15 @@ let Element = class Element extends Control.Element {
         /**
          * Header slot element.
          */
-        this.headerSlot = JSX.create("slot", { name: "header", class: "header" });
+        this.headerSlot = (JSX.create("slot", { name: "header", class: "header" }));
         /**
          * Content slot element.
          */
-        this.contentSlot = JSX.create("slot", { name: "content", class: "content" });
+        this.contentSlot = (JSX.create("slot", { name: "content", class: "content" }));
         /**
          * Footer slot element.
          */
-        this.footerSlot = JSX.create("slot", { name: "footer", class: "footer" });
+        this.footerSlot = (JSX.create("slot", { name: "footer", class: "footer" }));
         /**
          * Form layout element.
          */
@@ -49,7 +49,7 @@ let Element = class Element extends Control.Element {
         /**
          * Form styles element.
          */
-        this.formStyles = JSX.create("style", { type: "text/css" }, this.styles.toString());
+        this.formStyles = (JSX.create("style", { type: "text/css" }, this.styles.toString()));
         const shadow = JSX.append(this.attachShadow({ mode: 'closed' }), this.formStyles, this.formLayout);
         shadow.addEventListener('slotchange', this.changeHandler.bind(this));
         shadow.addEventListener('keyup', this.changeHandler.bind(this));
@@ -286,7 +286,7 @@ let Element = class Element extends Control.Element {
      */
     focus() {
         for (const child of this.children) {
-            if (child.focus instanceof Function && !child.disabled && !child.readOnly) {
+            if (child.tabIndex >= 0 && !child.disabled && !child.readOnly) {
                 child.focus();
                 break;
             }
